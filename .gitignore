@@ -1,0 +1,85 @@
+# Secretos y configuración local: nunca a Git
+.mcp.json
+.claude/settings.local.json
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*credentials*.json
+*oauth*.json
+*service-account*.json
+
+# Entornos, dependencias y builds
+.venv/
+node_modules/
+dashboard/dist/
+**/__pycache__/
+**/.pytest_cache/
+*.tsbuildinfo
+*.log
+
+# Archivos locales y temporales
+.artifacts/
+.backups/
+.agents/
+.aws/
+.claude/
+.codex/
+.mcp.json
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+
+# Secretos y variables
+.env
+.env.*
+!.env.example
+credentials.json
+client_secret*.json
+service-account*.json
+*credentials*.json
+token.json
+
+# macOS
+.DS_Store
+*.pyc
+*.log
+google-ads-mcp/
+google-ads-mcp/
+
+# Node / frontend
+node_modules/
+dashboard/node_modules/
+dist/
+build/
+coverage/
+.vite/
+
+# Referencias, secretos y temporales excluidos del guardado
+.references/
+._*
+*token*.json
+*secret*.json
+*secret*.yaml
+*secret*.yml
+*credentials*
+*.p12
+*.pfx
+*.keystore
+
+# Generated previews, spreadsheets and temporary files
+.preview-artifacts/
+*.xlsx
+*.xls
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.tmp
+*.temp
+*.swp
+dashboard-preview-server.py
+dashboard-preview-validation.mjs

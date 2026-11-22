@@ -1,0 +1,35 @@
+# Archivos que NO se suben a Cloud Build (gcloud builds submit / gcloud run deploy --source).
+# El build de Docker además aplica .dockerignore.
+.gcloudignore
+.git
+.gitignore
+.mcp.json
+.claude/
+.venv/
+google-ads-mcp/
+*.py
+!backend/**/*.py
+**/node_modules/
+dashboard/dist/
+**/__pycache__/
+**/._*
+**/.pytest_cache/
+**/*.tsbuildinfo
+.env
+.env.*
+**/.env
+**/.env.*
+*.pem
+*.key
+*credentials*.json
+*oauth*.json
+*service-account*.json
+**/*.log
+**/.clients.*.json
+.artifacts/
+.backups/
+.references/
+.preview-artifacts/
+backend/tests/
+dashboard-preview-server.py
+dashboard-preview-validation.mjs

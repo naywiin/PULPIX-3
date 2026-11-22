@@ -1,0 +1,519 @@
+{
+  "schema_version": 5,
+  "clients": [
+    {
+      "id": "blumia",
+      "name": "Blumia",
+      "slug": "blumia",
+      "logo": null,
+      "active": true,
+      "google_ads_customer_id": "6364343858",
+      "google_ads_login_customer_id": null,
+      "meta_ad_account_id": "1066569498344996",
+      "google_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "customer_id": "6364343858",
+          "login_customer_id": null
+        }
+      ],
+      "meta_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "ad_account_id": "1066569498344996",
+          "adset_selections": []
+        }
+      ],
+      "ga4_property_id": "496398757",
+      "ga4_property_ids": [
+        "496398757"
+      ],
+      "ga4_account_id": null,
+      "currency": "MXN",
+      "timezone": "America/Mexico_City",
+      "brand_color": "#0f766e",
+      "notes": null,
+      "hidden_metrics": [
+        "roas"
+      ]
+    },
+    {
+      "id": "clarvi",
+      "name": "Clarvi",
+      "slug": "clarvi",
+      "logo": null,
+      "active": true,
+      "google_ads_customer_id": "5017039586",
+      "google_ads_login_customer_id": null,
+      "meta_ad_account_id": "2953260231521252",
+      "google_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "customer_id": "5017039586",
+          "login_customer_id": null
+        }
+      ],
+      "meta_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "ad_account_id": "2953260231521252",
+          "adset_selections": []
+        }
+      ],
+      "ga4_property_id": "480211892",
+      "ga4_property_ids": [
+        "480211892"
+      ],
+      "ga4_account_id": null,
+      "currency": "MXN",
+      "timezone": "America/Hermosillo",
+      "brand_color": "#be185d",
+      "notes": null,
+      "hidden_metrics": []
+    },
+    {
+      "id": "modern-mexico",
+      "name": "Modern Mexico",
+      "slug": "modern-mexico",
+      "logo": null,
+      "active": true,
+      "google_ads_customer_id": "3060413629",
+      "google_ads_login_customer_id": "7954113535",
+      "meta_ad_account_id": "1008154060848851",
+      "google_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "customer_id": "3060413629",
+          "login_customer_id": "7954113535"
+        }
+      ],
+      "meta_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "ad_account_id": "1008154060848851",
+          "adset_selections": []
+        }
+      ],
+      "ga4_property_id": "469261444",
+      "ga4_property_ids": [
+        "469261444"
+      ],
+      "ga4_account_id": null,
+      "currency": "USD",
+      "timezone": "America/Chicago",
+      "brand_color": "#b45309",
+      "notes": null,
+      "hidden_metrics": []
+    },
+    {
+      "id": "doc-towers",
+      "name": "Doc Towers",
+      "slug": "doc-towers",
+      "logo": null,
+      "active": true,
+      "google_ads_customer_id": "7525546248",
+      "google_ads_login_customer_id": "7954113535",
+      "meta_ad_account_id": "872966514132855",
+      "google_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "customer_id": "7525546248",
+          "login_customer_id": "7954113535"
+        }
+      ],
+      "meta_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "ad_account_id": "872966514132855",
+          "adset_selections": []
+        }
+      ],
+      "ga4_property_id": "415691013",
+      "ga4_property_ids": [
+        "415691013"
+      ],
+      "ga4_account_id": null,
+      "currency": "MXN",
+      "timezone": "America/Mexico_City",
+      "brand_color": "#0369a1",
+      "notes": null,
+      "hidden_metrics": [
+        "roas"
+      ]
+    },
+    {
+      "id": "sign-factory",
+      "name": "Sign Factory",
+      "slug": "sign-factory",
+      "logo": null,
+      "active": true,
+      "google_ads_customer_id": "8225398841",
+      "google_ads_login_customer_id": "7954113535",
+      "meta_ad_account_id": "26322709467360690",
+      "google_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "customer_id": "8225398841",
+          "login_customer_id": "7954113535"
+        }
+      ],
+      "meta_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "ad_account_id": "26322709467360690",
+          "adset_selections": []
+        }
+      ],
+      "ga4_property_id": "264939271",
+      "ga4_property_ids": [
+        "264939271"
+      ],
+      "ga4_account_id": null,
+      "currency": "MXN",
+      "timezone": "America/Mexico_City",
+      "brand_color": "#dc2626",
+      "notes": null,
+      "hidden_metrics": []
+    },
+    {
+      "id": "grupo-regio",
+      "name": "Grupo Regio",
+      "slug": "grupo-regio",
+      "logo": null,
+      "active": true,
+      "google_ads_customer_id": "7493340758",
+      "google_ads_login_customer_id": null,
+      "meta_ad_account_id": "1619893934837515",
+      "google_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "customer_id": "7493340758",
+          "login_customer_id": null
+        }
+      ],
+      "meta_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "ad_account_id": "1619893934837515",
+          "adset_selections": []
+        }
+      ],
+      "ga4_property_id": null,
+      "ga4_property_ids": [],
+      "ga4_account_id": null,
+      "currency": "MXN",
+      "timezone": "America/Mexico_City",
+      "brand_color": "#1e40af",
+      "notes": "Pendiente de asignación: GA4 — la cuenta 'Grupo Regio' tiene varias propiedades (México, Miami, Rep. Dominicana, web2print…) y existe 'Marriott Grupo Regio'.",
+      "hidden_metrics": []
+    },
+    {
+      "id": "jungala",
+      "name": "Jungala",
+      "slug": "jungala",
+      "logo": null,
+      "active": true,
+      "google_ads_customer_id": "5267196729",
+      "google_ads_login_customer_id": null,
+      "meta_ad_account_id": "802869966755765",
+      "google_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "customer_id": "5267196729",
+          "login_customer_id": null
+        }
+      ],
+      "meta_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "ad_account_id": "802869966755765",
+          "adset_selections": []
+        }
+      ],
+      "ga4_property_id": null,
+      "ga4_property_ids": [],
+      "ga4_account_id": null,
+      "currency": "MXN",
+      "timezone": "America/Mexico_City",
+      "brand_color": "#15803d",
+      "notes": "Pendiente de asignación: GA4 — candidatas: 'Jungala Aqua Experience GA4' (417071493), 'Jungala QR' (376626691), 'jungala-aqua-experience-prod' (540652316).",
+      "hidden_metrics": []
+    },
+    {
+      "id": "ssiento",
+      "name": "Ssiento",
+      "slug": "ssiento",
+      "logo": null,
+      "active": true,
+      "google_ads_customer_id": "2183992705",
+      "google_ads_login_customer_id": "7954113535",
+      "meta_ad_account_id": "1465882777215540",
+      "google_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "customer_id": "2183992705",
+          "login_customer_id": "7954113535"
+        }
+      ],
+      "meta_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "ad_account_id": "1465882777215540",
+          "adset_selections": []
+        }
+      ],
+      "ga4_property_id": null,
+      "ga4_property_ids": [],
+      "ga4_account_id": null,
+      "currency": "MXN",
+      "timezone": "America/Mexico_City",
+      "brand_color": "#7c2d12",
+      "notes": "Pendiente de asignación: GA4 — múltiples propiedades por ciudad (Nacional, Mty, CDMX, USA…) y 'Ssiento - GA4 - GLOBAL MX'.",
+      "hidden_metrics": []
+    },
+    {
+      "id": "dorado-center",
+      "name": "Dorado Center",
+      "slug": "dorado-center",
+      "logo": null,
+      "active": true,
+      "google_ads_customer_id": "3781161137",
+      "google_ads_login_customer_id": null,
+      "meta_ad_account_id": "2138091603358475",
+      "google_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "customer_id": "3781161137",
+          "login_customer_id": null
+        }
+      ],
+      "meta_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "ad_account_id": "2138091603358475",
+          "adset_selections": []
+        }
+      ],
+      "ga4_property_id": null,
+      "ga4_property_ids": [],
+      "ga4_account_id": null,
+      "currency": "MXN",
+      "timezone": "America/Mexico_City",
+      "brand_color": "#a16207",
+      "notes": "Pendiente de asignación: GA4 — no se encontró propiedad.",
+      "hidden_metrics": [
+        "roas"
+      ]
+    },
+    {
+      "id": "tachuela",
+      "name": "Tachuela Marketing",
+      "slug": "tachuela",
+      "logo": null,
+      "active": true,
+      "google_ads_customer_id": "7852601280",
+      "google_ads_login_customer_id": "7954113535",
+      "meta_ad_account_id": "431870981552410",
+      "google_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "customer_id": "7852601280",
+          "login_customer_id": "7954113535"
+        }
+      ],
+      "meta_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "ad_account_id": "431870981552410",
+          "adset_selections": []
+        }
+      ],
+      "ga4_property_id": null,
+      "ga4_property_ids": [],
+      "ga4_account_id": null,
+      "currency": "MXN",
+      "timezone": "America/Mexico_City",
+      "brand_color": "#111827",
+      "notes": "Pendiente de asignación: GA4 — candidatas: 'Tachuela.mx - GA4' (390438039), 'Tachuela GA4' (299619800), 'Swydo - Tachuela Marketing' (490701045).",
+      "hidden_metrics": []
+    },
+    {
+      "id": "bambino",
+      "name": "Bambino",
+      "slug": "bambino",
+      "logo": null,
+      "active": true,
+      "google_ads_customer_id": "5276108056",
+      "google_ads_login_customer_id": null,
+      "meta_ad_account_id": null,
+      "google_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "customer_id": "5276108056",
+          "login_customer_id": null
+        }
+      ],
+      "meta_ads_sources": [],
+      "ga4_property_id": "440407831",
+      "ga4_property_ids": [
+        "440407831"
+      ],
+      "ga4_account_id": null,
+      "currency": "MXN",
+      "timezone": "America/Mexico_City",
+      "brand_color": "#9333ea",
+      "notes": "Pendiente de asignación: Meta — 'Casas Bambino' (441970143809585) pertenece a otro negocio; confirmar si es el mismo cliente que 'Corporativo Bambino'.",
+      "hidden_metrics": []
+    },
+    {
+      "id": "santuario-residencial",
+      "name": "Santuario Residencial",
+      "slug": "santuario-residencial",
+      "logo": null,
+      "active": true,
+      "google_ads_customer_id": "8323928147",
+      "google_ads_login_customer_id": null,
+      "meta_ad_account_id": null,
+      "google_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "customer_id": "8323928147",
+          "login_customer_id": null
+        }
+      ],
+      "meta_ads_sources": [],
+      "spotify_ads_sources": [
+        {
+          "business_id": "e27cd146-ddc1-4551-9757-25fe6bc04016",
+          "ad_account_id": "79b62668-1427-4b29-8b73-f4cba3525d0d"
+        }
+      ],
+      "ga4_property_id": null,
+      "ga4_property_ids": [],
+      "ga4_account_id": null,
+      "currency": "MXN",
+      "timezone": "America/Mexico_City",
+      "brand_color": "#166534",
+      "notes": "Pendiente de asignación: GA4 — posible 'santuarioveracruz.com' (479949313), el nombre no coincide exactamente.",
+      "hidden_metrics": [
+        "roas"
+      ]
+    },
+    {
+      "id": "cirque-du-soleil-joya",
+      "name": "Cirque du Soleil JOYÀ",
+      "slug": "cirque-du-soleil-joya",
+      "logo": null,
+      "active": true,
+      "google_ads_customer_id": "6224083996",
+      "google_ads_login_customer_id": "7954113535",
+      "meta_ad_account_id": "2048742145193546",
+      "google_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "customer_id": "6224083996",
+          "login_customer_id": "7954113535"
+        }
+      ],
+      "meta_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "ad_account_id": "2048742145193546",
+          "adset_selections": []
+        }
+      ],
+      "ga4_property_id": null,
+      "ga4_property_ids": [],
+      "ga4_account_id": null,
+      "currency": "MXN",
+      "timezone": "America/Cancun",
+      "brand_color": "#7e22ce",
+      "notes": "Meta asignada: 'Cirque du Soleil JOYÀ' (2048742145193546), la única ACTIVE y consultable; las otras dos ('(Read-Only)' 977951765062587 y 'JOYÀ_1 (Read-Only)' 1082598430772317) son de solo lectura y 'Joyá by Cirque du Soleil' (1166529450042730) está cerrada. Pendiente de asignación: GA4 — 'Cirque Du Soleil JOYA QR' (376640657).",
+      "hidden_metrics": []
+    },
+    {
+      "id": "iupi",
+      "name": "iupi.mx",
+      "slug": "iupi",
+      "logo": null,
+      "active": true,
+      "google_ads_customer_id": null,
+      "google_ads_login_customer_id": null,
+      "meta_ad_account_id": "787769601636092",
+      "google_ads_sources": [],
+      "meta_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "ad_account_id": "787769601636092",
+          "adset_selections": []
+        }
+      ],
+      "ga4_property_id": "504404740",
+      "ga4_property_ids": [
+        "504404740"
+      ],
+      "ga4_account_id": null,
+      "currency": "MXN",
+      "timezone": "America/Mexico_City",
+      "brand_color": "#db2777",
+      "notes": "Pendiente de asignación: Google Ads — no se encontró cuenta.",
+      "hidden_metrics": []
+    },
+    {
+      "id": "maternalia",
+      "name": "Maternalia",
+      "slug": "maternalia",
+      "logo": null,
+      "active": true,
+      "google_ads_customer_id": null,
+      "google_ads_login_customer_id": null,
+      "meta_ad_account_id": "1299299048505394",
+      "google_ads_sources": [],
+      "meta_ads_sources": [
+        {
+          "campaign_ids": [],
+          "allocation": "exclusive",
+          "ad_account_id": "1299299048505394",
+          "adset_selections": []
+        }
+      ],
+      "ga4_property_id": "539483266",
+      "ga4_property_ids": [
+        "539483266"
+      ],
+      "ga4_account_id": null,
+      "currency": "MXN",
+      "timezone": "America/Mexico_City",
+      "brand_color": "#e11d48",
+      "notes": "Pendiente de asignación: Google Ads — no se encontró cuenta.",
+      "hidden_metrics": [
+        "roas"
+      ]
+    }
+  ]
+}
