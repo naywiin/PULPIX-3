@@ -1,23 +1,17 @@
-/** IDs registrados con autorización para métricas de valor en la interfaz. */
-export const VALUE_METRICS_ENABLED_CLIENTS = new Set([
-  'cirque-du-soleil-joya',
-  'jungala',
-  'ssiento',
-  'blumia',
-]);
+/**
+ * Configuración de métricas de valor y modo de resultado en Meta.
+ *
+ * En Pulpix no hay restricciones por client_id de terceros: cualquier cliente
+ * puede ver métricas de valor (ROAS / valor de conversión) a menos que el
+ * usuario oculte `roas` en la configuración del propio cliente.
+ */
+export const VALUE_METRICS_ENABLED_CLIENTS = new Set<string>();
 
-export const valueMetricsEnabled = (clientId: string): boolean =>
-  VALUE_METRICS_ENABLED_CLIENTS.has(clientId);
+export const valueMetricsEnabled = (_clientId: string): boolean => true;
 
 export type MetaResultMode = 'purchase' | 'lead';
 
-/** Resultado principal de Meta por client_id; los clientes no listados conservan leads. */
-export const META_RESULT_MODE: Readonly<Record<string, MetaResultMode>> = {
-  'cirque-du-soleil-joya': 'purchase',
-  jungala: 'purchase',
-  ssiento: 'purchase',
-  blumia: 'purchase',
-};
+export const META_RESULT_MODE: Readonly<Record<string, MetaResultMode>> = {};
 
-export const metaResultMode = (clientId: string): MetaResultMode =>
-  META_RESULT_MODE[clientId] ?? 'lead';
+export const metaResultMode = (clientId: string, preferred?: MetaResultMode): MetaResultMode =>
+  preferred ?? META_RESULT_MODE[clientId] ?? 'lead';

@@ -1,53 +1,38 @@
-"""Exclusión central de clientes y cuentas que no deben aparecer en la aplicación.
+"""Exclusión opcional de clientes y cuentas por patrón de nombre.
 
-Solo afecta a este dashboard: no toca permisos, datos ni cuentas en Google Ads,
-Meta Ads o Google Analytics. Se aplica en varias capas para que "Descubrir
-cuentas" no pueda reintroducir lo excluido:
-
-- el registro de clientes (`registry.py`) oculta y rechaza clientes excluidos;
-- el descubrimiento (`service.discover`) filtra las cuentas de las tres plataformas;
-- los bloques del dashboard (`service.platform_block`) descartan propiedades excluidas.
-
-La comparación normaliza el texto (minúsculas, sin acentos, espacios colapsados)
-y busca el patrón como subcadena, así que "Vidanta", "VIDANTA", "Marketing
-Vidanta", "Vida Vacations", "VIDA VACATIONS", "The View" y "The View Cancun"
-quedan todos fuera.
+En Pulpix no hay exclusiones hardcodeadas de ninguna empresa externa. Si un
+despliegue necesita filtrar patrones específicos, puede definir la variable de
+entorno `MP_EXCLUDED_CLIENT_PATTERNS` separada por comas.
 """
 from __future__ import annotations
 
+import os
 import unicodedata
 from typing import Any, Iterable
 
-EXCLUDED_CLIENT_PATTERNS: tuple[str, ...] = (
-    "vidanta",
-    "vida vacations",
-    "the view",
-)
 
-# Campos de una cuenta descubierta que se revisan al filtrar: SIEMPRE el nombre
-# propio de la entidad (la cuenta de Google Ads, la propiedad GA4 y su cuenta
-# contenedora, que en GA4 es de la marca).
-#
-# El Business Manager de Meta (`business`) NO se mira a propósito: es un
-# contenedor administrativo que una agencia comparte entre marcas distintas.
-# "MarketingVidanta" administra, además de Vidanta, cuentas de clientes que SÍ
-# queremos ver (Cirque du Soleil JOYÀ, Jungala); filtrar por él los borraba del
-# selector sin que nada lo dijera. Un cliente se excluye por su propio nombre,
-# nunca por quién le administra la cuenta.
+def _load_excluded_patterns() -> tuple[str, ...]:
+    raw = os.environ.get("MP_EXCLUDED_CLIENT_PATTERNS", "")
+    items = [normalize(part) for part in raw.split(",") if part.strip()]
+    return tuple(p for p in items if p)
+
+
 ACCOUNT_NAME_FIELDS = ("name", "account_name", "property_name")
 
 
 def normalize(value: Any) -> str:
-    """minúsculas + sin acentos + espacios colapsados, para comparar por subcadena.
-
-    Así 'The  View' y 'THE VIEW' coinciden con el patrón 'the view'.
-    """
+    """minúsculas + sin acentos + espacios colapsados, para comparar por subcadena."""
     text = unicodedata.normalize("NFKD", str(value)).encode("ascii", "ignore").decode()
     return " ".join(text.lower().split())
 
 
+EXCLUDED_CLIENT_PATTERNS: tuple[str, ...] = _load_excluded_patterns()
+
+
 def matched_pattern(*values: Any) -> str | None:
     """Devuelve el patrón que hace excluir estos textos, o None."""
+    if not EXCLUDED_CLIENT_PATTERNS:
+        return None
     for value in values:
         if not value:
             continue

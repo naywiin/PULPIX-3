@@ -3,7 +3,7 @@ export interface WooSyncBranch {
   label: string;
 }
 
-/** Configuración única de sucursales reconocidas por WooSync. */
+/** Configuración de sucursales reconocidas por WooSync (opcional). */
 export const WOOSYNC_BRANCHES: readonly WooSyncBranch[] = [
   { id: 'nacional', label: 'Nacional' },
   { id: 'monterrey', label: 'Monterrey' },
@@ -13,11 +13,10 @@ export const WOOSYNC_BRANCHES: readonly WooSyncBranch[] = [
   { id: 'cdmx', label: 'CDMX' },
 ] as const;
 
-export const WOOSYNC_CLIENT_IDS = new Set(['ssiento']);
+/** Sin clientes hardcodeados de terceros en Pulpix. */
+export const WOOSYNC_CLIENT_IDS = new Set<string>();
 export const WOOSYNC_DEFAULT_BRANCH = 'nacional';
-/** Todas las sedes que WooSync devuelve como dimensiones independientes. */
-export const WOOSYNC_ALL_BRANCH_IDS = WOOSYNC_BRANCHES
-  .map((branch) => branch.id);
+export const WOOSYNC_ALL_BRANCH_IDS = WOOSYNC_BRANCHES.map((branch) => branch.id);
 
 export function hasWooSyncSales(clientId: string | null | undefined): boolean {
   return Boolean(clientId && WOOSYNC_CLIENT_IDS.has(clientId));

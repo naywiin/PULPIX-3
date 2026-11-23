@@ -1,9 +1,8 @@
 """Configuración del backend leída exclusivamente de variables de entorno.
 
-Los secretos (token de Meta, developer token de Google Ads) NUNCA se guardan en
-archivos del proyecto ni se envían al navegador: solo se leen del entorno del
-proceso en el momento de usarlos. En Cloud Run se inyectan desde Secret Manager
-con `--set-secrets META_ACCESS_TOKEN=<secreto>:latest`.
+Los secretos (tokens OAuth, developer token de Google Ads, clave de cifrado)
+NUNCA se guardan en archivos del proyecto ni se envían al navegador: solo se
+leen del entorno del proceso en el momento de usarlos.
 """
 from __future__ import annotations
 
@@ -22,8 +21,8 @@ def _int_env(name: str, default: int) -> int:
         return default
 
 
-def _customer_id_env(name: str, default: str) -> str:
-    """ID de cuenta de Google Ads sin guiones (no es un secreto: es un identificador)."""
+def _customer_id_env(name: str, default: str = "") -> str:
+    """ID de cuenta de Google Ads sin guiones (opcional)."""
     raw = os.environ.get(name) or default
     digits = "".join(ch for ch in raw if ch.isdigit())
     return digits or default
@@ -38,11 +37,7 @@ def _bool_env(name: str, default: bool) -> bool:
 
 @dataclass
 class Settings:
-    # Registro de clientes. En Cloud Run apúntalo a un volumen persistente
-    # (bucket montado): el disco del contenedor es efímero y no se comparte entre instancias.
-    # Dónde vive el registro EN SERIO. "file" solo es duradero si la ruta está
-    # en un volumen persistente; dentro de la imagen se pierde en cada revisión
-    # de Cloud Run (ver stores.py). En producción usa "firestore".
+    # Persistencia: "file" para desarrollo local, "firestore" para producción.
     store_backend: str = field(default_factory=lambda: os.environ.get("MP_STORE", "file"))
     firestore_collection: str = field(default_factory=lambda: os.environ.get("MP_FIRESTORE_COLLECTION", "clients"))
     budgets_firestore_collection: str = field(default_factory=lambda: os.environ.get("MP_BUDGETS_FIRESTORE_COLLECTION", "performance_budgets"))
@@ -52,21 +47,21 @@ class Settings:
     reporting_group_snapshots_firestore_collection: str = field(
         default_factory=lambda: os.environ.get("MP_REPORTING_GROUP_SNAPSHOTS_FIRESTORE_COLLECTION", "performance_reporting_group_snapshots")
     )
+    users_firestore_collection: str = field(
+        default_factory=lambda: os.environ.get("MP_USERS_FIRESTORE_COLLECTION", "users")
+    )
     firestore_project: str | None = field(default_factory=lambda: os.environ.get("MP_FIRESTORE_PROJECT") or None)
     firestore_database: str | None = field(default_factory=lambda: os.environ.get("MP_FIRESTORE_DATABASE") or None)
     clients_file: Path = field(default_factory=lambda: Path(os.environ.get("MP_CLIENTS_FILE", BASE_DIR / "data" / "clients.json")))
-    # SEED: registro incluido en la imagen. Solo se usa para inicializar un
-    # almacenamiento VACÍO, nunca para sobrescribir datos existentes.
     clients_seed_file: Path = field(default_factory=lambda: Path(os.environ.get("MP_CLIENTS_SEED_FILE", BASE_DIR / "data" / "clients.json")))
-    # Revisions aisladas pueden desactivar explícitamente el seed incluso si
-    # la colección de prueba queda vacía. Por defecto conserva compatibilidad.
-    seed_clients: bool = field(default_factory=lambda: _bool_env("MP_SEED_CLIENTS", True))
+    data_dir: Path = field(default_factory=lambda: Path(os.environ.get("MP_DATA_DIR", BASE_DIR / "data")))
+    # En Pulpix cada usuario empieza limpio con sus propias cuentas; seed desactivado por defecto.
+    seed_clients: bool = field(default_factory=lambda: _bool_env("MP_SEED_CLIENTS", False))
     cache_ttl_seconds: int = field(default_factory=lambda: _int_env("MP_CACHE_TTL_SECONDS", 300))
     discovery_ttl_seconds: int = field(default_factory=lambda: _int_env("MP_DISCOVERY_TTL_SECONDS", 1800))
-    # MCC raíz de la agencia: fuente de la jerarquía de clientes de Google Ads
-    # (customer_client) y valor de login-customer-id al consultar cuentas cliente.
+    # MCC raíz opcional (en multi-usuario se descubren las cuentas accesibles del usuario vía OAuth).
     google_ads_manager_customer_id: str = field(
-        default_factory=lambda: _customer_id_env("GOOGLE_ADS_MANAGER_CUSTOMER_ID", "7954113535")
+        default_factory=lambda: _customer_id_env("GOOGLE_ADS_MANAGER_CUSTOMER_ID", "")
     )
     meta_api_version: str = field(default_factory=lambda: os.environ.get("META_API_VERSION", "v24.0"))
     cors_origins: list[str] = field(
@@ -78,8 +73,35 @@ class Settings:
     )
     static_dir: Path = field(default_factory=lambda: Path(os.environ.get("MP_STATIC_DIR", PROJECT_DIR / "dashboard" / "dist")))
 
-    # Los secretos se exponen como propiedades para leerlos en cada uso y no
-    # dejarlos en el repr() del objeto (que podría acabar en un log).
+    # --- Autenticación multi-usuario (Firebase Auth) ---
+    auth_required: bool = field(default_factory=lambda: _bool_env("PULPIX_AUTH_REQUIRED", True))
+    firebase_project_id: str | None = field(
+        default_factory=lambda: os.environ.get("FIREBASE_PROJECT_ID") or os.environ.get("MP_FIRESTORE_PROJECT") or None
+    )
+
+    # --- OAuth por usuario (Meta Ads & Google Ads) ---
+    oauth_redirect_base_url: str = field(
+        default_factory=lambda: os.environ.get("PULPIX_PUBLIC_URL", "http://localhost:8000").rstrip("/")
+    )
+    frontend_url: str = field(
+        default_factory=lambda: os.environ.get("PULPIX_FRONTEND_URL", "http://localhost:5173").rstrip("/")
+    )
+    meta_app_id: str | None = field(default_factory=lambda: os.environ.get("META_APP_ID") or None)
+    google_oauth_client_id: str | None = field(default_factory=lambda: os.environ.get("GOOGLE_OAUTH_CLIENT_ID") or None)
+
+    @property
+    def meta_app_secret(self) -> str | None:
+        return os.environ.get("META_APP_SECRET") or None
+
+    @property
+    def google_oauth_client_secret(self) -> str | None:
+        return os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET") or None
+
+    @property
+    def token_encryption_key(self) -> str | None:
+        """Clave Fernet (32 bytes base64) para cifrar tokens OAuth en reposo."""
+        return os.environ.get("PULPIX_TOKEN_ENCRYPTION_KEY") or None
+
     @property
     def meta_access_token(self) -> str | None:
         return os.environ.get("META_ACCESS_TOKEN") or None
