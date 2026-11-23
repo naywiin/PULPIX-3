@@ -3,10 +3,12 @@ import type { ComparePreset, DateRange } from '../types/report';
 import type { WooSyncFilters, WooSyncOverview } from '../types/woosync';
 import type { BudgetPlatform, DownloadedReport, MonthlyBudget, MonthlyCampaignAssignment, PerformanceDetailLevel, PerformanceDetailPlatform, PerformanceDetailResponse, PerformanceDetailSpend, PerformanceDetailStatus, PerformanceSummary, ReportingGroup, ReportingGroupSnapshotResult } from '../types/reporting';
 import { buildWooSyncQuery } from '../lib/woosync';
+import { getAuthToken } from '../auth/firebase';
 
 /**
- * Cliente HTTP del backend (FastAPI). El navegador solo habla con /api:
- * las credenciales de Google/Meta viven exclusivamente en el servidor.
+ * Cliente HTTP del backend (FastAPI). Envía automáticamente el token de
+ * Firebase Auth en el header Authorization; las credenciales OAuth de Meta y
+ * Google Ads viven exclusivamente cifradas en el servidor.
  */
 const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, '') ?? '';
 
@@ -20,16 +22,26 @@ export class ApiError extends Error {
   }
 }
 
+async function authHeaders(): Promise<Record<string, string>> {
+  const token = await getAuthToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 async function request<T>(path: string, init?: RequestInit & { timeoutMs?: number }): Promise<T> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), init?.timeoutMs ?? 120_000);
   const onAbort = () => ctrl.abort();
   init?.signal?.addEventListener('abort', onAbort);
   try {
+    const auth = await authHeaders();
     const res = await fetch(`${API_BASE}${path}`, {
       ...init,
       signal: ctrl.signal,
-      headers: { Accept: 'application/json', ...(init?.body ? { 'Content-Type': 'application/json' } : {}) },
+      headers: {
+        Accept: 'application/json',
+        ...auth,
+        ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+      },
     });
     const text = await res.text();
     const body = text ? safeJson(text) : null;
@@ -52,10 +64,14 @@ async function requestDownload(path: string, fallbackFilename: string): Promise<
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 180_000);
   try {
+    const auth = await authHeaders();
     const res = await fetch(`${API_BASE}${path}`, {
       signal: ctrl.signal,
       cache: 'no-store',
-      headers: { Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' },
+      headers: {
+        Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ...auth,
+      },
     });
     if (!res.ok) {
       const text = await res.text();
@@ -95,8 +111,46 @@ export interface HealthResponse {
   credentials: Record<string, string>;
 }
 
+export interface IntegrationStatusItem {
+  connected: boolean;
+  account_label: string | null;
+  connected_at: string | null;
+  expires_at: string | null;
+  oauth_configured: boolean;
+}
+
+export interface IntegrationStatusMap {
+  meta_ads: IntegrationStatusItem;
+  google_ads: IntegrationStatusItem;
+}
+
 export const api = {
   health: (signal?: AbortSignal) => request<HealthResponse>('/api/health', { signal, timeoutMs: 4000 }),
+
+  authConfig: (signal?: AbortSignal) =>
+    request<{ auth_required: boolean; providers: string[] }>('/api/auth/config', { signal, timeoutMs: 4000 }),
+  me: (signal?: AbortSignal) =>
+    request<{ user: { uid: string; email: string | null; name: string | null; picture: string | null }; integrations: IntegrationStatusMap }>('/api/auth/me', { signal }),
+  integrationStatus: (signal?: AbortSignal) =>
+    request<IntegrationStatusMap>('/api/integrations/status', { signal }),
+  startMetaOAuth: () => request<{ auth_url: string }>('/api/integrations/meta/start'),
+  disconnectMeta: () => request<{ disconnected: boolean }>('/api/integrations/meta', { method: 'DELETE' }),
+  startGoogleAdsOAuth: () => request<{ auth_url: string }>('/api/integrations/google-ads/start'),
+  disconnectGoogleAds: () => request<{ disconnected: boolean }>('/api/integrations/google-ads', { method: 'DELETE' }),
+  importClients: (
+    accounts: Array<{
+      platform: 'meta_ads' | 'google_ads';
+      account_id: string;
+      name: string;
+      currency?: string;
+      timezone?: string;
+      login_customer_id?: string | null;
+    }>,
+  ) =>
+    request<{ created: ApiClient[]; skipped: Array<{ account_id: string; reason: string }> }>(
+      '/api/integrations/import-clients',
+      { method: 'POST', body: JSON.stringify({ accounts }) },
+    ),
 
   listClients: (signal?: AbortSignal) => request<{ clients: ApiClient[] }>('/api/clients', { signal }).then((r) => r.clients),
   createClient: (data: Partial<ApiClient> & { name: string }) =>
