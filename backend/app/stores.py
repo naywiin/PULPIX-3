@@ -1,28 +1,12 @@
-"""Dónde viven REALMENTE los datos del registro de clientes.
+"""Persistencia del registro de clientes (aislada por usuario en Pulpix).
 
-El problema que resuelve este módulo
-------------------------------------
-Hasta ahora el registro se leía y escribía en `backend/data/clients.json`, que
-el Dockerfile copia DENTRO de la imagen. En Cloud Run eso significa que:
-
-- cada escritura va al sistema de archivos efímero del contenedor;
-- cada instancia tiene su propia copia divergente;
-- al reciclarse una instancia, o al escalar a cero, lo escrito se pierde;
-- **al desplegar una revisión nueva el archivo vuelve al de la imagen**, así que
-  la configuración del usuario desaparece.
-
-Por eso la persistencia se separa de la lógica del registro: `ClientStore` solo
-carga y guarda documentos; quién valida, migra y resuelve conflictos sigue
-siendo `registry.ClientRegistry`.
-
-Backends
---------
-- `MemoryClientStore`    : pruebas. No persiste nada a propósito.
-- `FileClientStore`      : desarrollo local, o Cloud Run con un volumen montado
-                           (bucket de Cloud Storage). Escritura atómica.
-- `FirestoreClientStore` : producción. Sobrevive a revisiones e instancias.
-
-El backend se elige con `MP_STORE` (ver `config.Settings.store_backend`).
+Soporta:
+- `MemoryClientStore`    : pruebas en memoria.
+- `FileClientStore`      : archivo JSON con escritura atómica.
+- `FirestoreClientStore` : Firestore (producción en Cloud Run).
+- `UserScopedClientStore`: delega automáticamente a un store independiente por
+  cada `uid` autenticado (`users/{uid}/clients` en Firestore o
+  `data/users/{uid}/clients.json` en disco).
 """
 from __future__ import annotations
 
@@ -34,16 +18,16 @@ import threading
 from pathlib import Path
 from typing import Any, Protocol
 
+from .auth import get_current_user_uid
+
 log = logging.getLogger("mp.store")
 
-#: Envoltorio del documento guardado. `clients` es la lista de clientes.
 Payload = dict[str, Any]
 
 
 class ClientStore(Protocol):
     """Persistencia cruda del registro. No valida ni migra: solo guarda y lee."""
 
-    #: Nombre legible del backend, para logs y diagnóstico.
     name: str
 
     def load(self) -> Payload: ...
@@ -53,6 +37,11 @@ class ClientStore(Protocol):
 
 def _empty() -> Payload:
     return {"clients": []}
+
+
+def _safe_uid(uid: str) -> str:
+    cleaned = "".join(ch for ch in uid if ch.isalnum() or ch in ("-", "_"))
+    return cleaned or "anonymous"
 
 
 class MemoryClientStore:
@@ -77,12 +66,7 @@ class MemoryClientStore:
 
 
 class FileClientStore:
-    """Un archivo JSON. Sirve para desarrollo local y para un volumen montado.
-
-    AVISO: si la ruta apunta dentro de la imagen del contenedor, esto NO es
-    almacenamiento duradero en Cloud Run (ver la cabecera del módulo). Solo es
-    duradero si la ruta está en un volumen persistente montado.
-    """
+    """Un archivo JSON con escritura atómica."""
 
     name = "file"
 
@@ -103,7 +87,6 @@ class FileClientStore:
     def save(self, payload: Payload) -> None:
         with self._lock:
             self.path.parent.mkdir(parents=True, exist_ok=True)
-            # Escritura atómica: un fallo a mitad nunca deja el registro a medias.
             fd, tmp = tempfile.mkstemp(dir=self.path.parent, prefix=".clients.", suffix=".json")
             try:
                 with os.fdopen(fd, "w", encoding="utf-8") as f:
@@ -119,25 +102,17 @@ class FileClientStore:
 
 
 class FirestoreClientStore:
-    """Firestore: el registro sobrevive a revisiones, instancias y escalados.
-
-    Cada cliente es un documento de la colección (`MP_FIRESTORE_COLLECTION`,
-    por defecto `clients`), con su `id` como identificador del documento. La
-    versión de esquema vive en un documento aparte (`_meta`) para no confundirse
-    con un cliente.
-
-    La librería se importa aquí dentro a propósito: quien use el backend de
-    archivo no necesita tener instalado `google-cloud-firestore`.
-    """
+    """Firestore: el registro sobrevive a revisiones, instancias y escalados."""
 
     name = "firestore"
     META_DOC = "_meta"
 
     def __init__(self, collection: str = "clients", project: str | None = None,
-                 database: str | None = None) -> None:
+                 database: str | None = None, parent_doc_path: tuple[str, str] | None = None) -> None:
         self.collection = collection
         self.project = project
         self.database = database
+        self.parent_doc_path = parent_doc_path
         self._client = None
         self._lock = threading.RLock()
 
@@ -146,7 +121,7 @@ class FirestoreClientStore:
             if self._client is None:
                 try:
                     from google.cloud import firestore
-                except ImportError as e:  # pragma: no cover - depende del entorno
+                except ImportError as e:  # pragma: no cover
                     raise StoreError(
                         "Falta la librería google-cloud-firestore en el backend. "
                         "Instálala (está en requirements.txt) para usar MP_STORE=firestore."
@@ -162,8 +137,15 @@ class FirestoreClientStore:
                     raise StoreError(f"No se pudo conectar con Firestore: {type(e).__name__}") from e
             return self._client
 
+    def _col(self):
+        db = self._db()
+        if self.parent_doc_path:
+            parent_col, parent_doc = self.parent_doc_path
+            return db.collection(parent_col).document(parent_doc).collection(self.collection)
+        return db.collection(self.collection)
+
     def load(self) -> Payload:
-        col = self._db().collection(self.collection)
+        col = self._col()
         try:
             docs = list(col.stream())
         except Exception as e:
@@ -176,30 +158,24 @@ class FirestoreClientStore:
                 meta = data
                 continue
             clients.append({**data, "id": data.get("id") or doc.id})
-        # Orden estable: el registro no tiene un orden natural en Firestore.
         clients.sort(key=lambda c: str(c.get("_order", "")) or str(c.get("name", "")).lower())
-        # Conserva toda la metadata del registro, incluidos los respaldos
-        # lógicos backup_vN creados antes de una migración. Guardar solo
-        # schema_version haría que Firestore perdiera precisamente el backup.
         payload: Payload = {**meta, "clients": clients}
         return payload
 
     def save(self, payload: Payload) -> None:
         db = self._db()
-        col = db.collection(self.collection)
+        col = self._col()
         clients = payload.get("clients") or []
         keep = {str(c["id"]) for c in clients if c.get("id")}
         try:
             batch = db.batch()
             for i, client in enumerate(clients):
                 cid = str(client["id"])
-                # `_order` conserva el orden del registro entre lecturas.
                 batch.set(col.document(cid), {**client, "_order": f"{i:04d}"})
             batch.set(
                 col.document(self.META_DOC),
                 {key: value for key, value in payload.items() if key != "clients"},
             )
-            # Lo que ya no está en el registro se borra explícitamente.
             for doc in col.list_documents():
                 if doc.id != self.META_DOC and doc.id not in keep:
                     batch.delete(doc)
@@ -210,7 +186,7 @@ class FirestoreClientStore:
             raise StoreError(f"No se pudo guardar en Firestore: {type(e).__name__}") from e
 
     def is_empty(self) -> bool:
-        col = self._db().collection(self.collection)
+        col = self._col()
         try:
             for doc in col.list_documents():
                 if doc.id != self.META_DOC:
@@ -218,6 +194,47 @@ class FirestoreClientStore:
         except Exception as e:
             raise StoreError(f"No se pudo consultar Firestore: {type(e).__name__}") from e
         return True
+
+
+class UserScopedClientStore:
+    """Aísla el registro de clientes por usuario autenticado (`uid`)."""
+
+    def __init__(self, settings) -> None:
+        self.settings = settings
+        self.name = (settings.store_backend or "file").lower()
+        self._stores: dict[str, ClientStore] = {}
+        self._lock = threading.RLock()
+
+    def _for_current_user(self) -> ClientStore:
+        uid = _safe_uid(get_current_user_uid())
+        with self._lock:
+            store = self._stores.get(uid)
+            if store is None:
+                backend = self.name
+                if backend == "memory":
+                    store = MemoryClientStore()
+                elif backend == "firestore":
+                    store = FirestoreClientStore(
+                        collection=self.settings.firestore_collection,
+                        project=self.settings.firestore_project,
+                        database=self.settings.firestore_database,
+                        parent_doc_path=(self.settings.users_firestore_collection, uid),
+                    )
+                elif backend == "file":
+                    store = FileClientStore(self.settings.data_dir / "users" / uid / "clients.json")
+                else:
+                    raise StoreError(f"MP_STORE desconocido: {backend!r}. Usa file, firestore o memory.")
+                self._stores[uid] = store
+            return store
+
+    def load(self) -> Payload:
+        return self._for_current_user().load()
+
+    def save(self, payload: Payload) -> None:
+        self._for_current_user().save(payload)
+
+    def is_empty(self) -> bool:
+        return self._for_current_user().is_empty()
 
 
 class StoreError(Exception):
